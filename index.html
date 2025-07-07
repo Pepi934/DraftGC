@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Draft Golden Cup 2025</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="main-container">
+        <!-- Étape 1: Configuration des Capitaines -->
+        <div id="setup-phase" class="w-full max-w-2xl text-center p-8 glass-effect rounded-xl shadow-2xl">
+            <h1 class="text-4xl font-bold mb-4 title-text">Configuration de la Draft</h1>
+            <p class="mb-6 text-gray-300">Entrez les noms des 8 capitaines, séparés par des virgules.</p>
+            <textarea id="captains-input" class="w-full p-3 bg-gray-900/50 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-400 text-white" rows="3" placeholder="Ex: Faker, Caps, ShowMaker, ..."></textarea>
+            <p id="error-message" class="text-red-400 mt-2 h-6"></p>
+            <button id="confirm-captains" class="mt-4 w-full action-button">
+                Lancer la Draft
+            </button>
+        </div>
+
+        <!-- Étape 2: Phase de Draft -->
+        <div id="draft-phase" class="hidden w-full h-full flex flex-col">
+            <div id="turn-indicator" class="w-full text-center text-2xl font-bold p-4 glass-effect rounded-xl mb-4 sticky top-4 z-20"></div>
+            
+            <h2 class="section-title">Équipes</h2>
+            <div id="draft-board" class="flex flex-row justify-center gap-2 mb-6 overflow-x-auto pb-4">
+                <!-- Les colonnes des équipes seront générées ici -->
+            </div>
+
+            <div class="filters-container">
+                <!-- Filtres par rôle (gauche) -->
+                <div id="role-filters" class="flex items-center gap-3 filter-group">
+                    <button data-role="all" class="role-filter-btn active">Tous</button>
+                    <img src="img/roles/top.png" data-role="top" class="role-icon" alt="Top" title="Filtrer par Top">
+                    <img src="img/roles/jungle.png" data-role="jungle" class="role-icon" alt="Jungle" title="Filtrer par Jungle">
+                    <img src="img/roles/mid.png" data-role="mid" class="role-icon" alt="Mid" title="Filtrer par Mid">
+                    <img src="img/roles/adc.png" data-role="adc" class="role-icon" alt="ADC" title="Filtrer par ADC">
+                    <img src="img/roles/support.png" data-role="support" class="role-icon" alt="Support" title="Filtrer par Support">
+                </div>
+                <!-- Filtres par jetons (droite) -->
+                <div id="cost-filters" class="flex items-center gap-2 filter-group">
+                    <button data-cost="all" class="cost-filter-btn active">Tous</button>
+                    <button data-cost="0-174" class="cost-filter-btn">&lt; 175</button>
+                    <button data-cost="175-199" class="cost-filter-btn">175-199</button>
+                    <button data-cost="200-224" class="cost-filter-btn">200-224</button>
+                    <button data-cost="225-249" class="cost-filter-btn">225-249</button>
+                    <button data-cost="250-274" class="cost-filter-btn">250-274</button>
+                    <button data-cost="275-9999" class="cost-filter-btn">275+</button>
+                </div>
+            </div>
+
+            <h2 class="section-title">Joueurs Disponibles</h2>
+            <div id="player-pool" class="flex flex-wrap justify-center gap-4 p-4">
+                <!-- Les cartes des joueurs seront générées ici -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modale de Confirmation -->
+    <div id="confirmation-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div class="modal-backdrop fixed inset-0"></div>
+        <div class="glass-effect rounded-2xl shadow-xl z-10 p-8 text-center max-w-sm w-full modal-pop">
+            <h2 class="text-2xl font-bold mb-4 title-text">Confirmer le choix ?</h2>
+            <div id="selected-player-preview" class="flex justify-center mb-6">
+                <!-- L'image du joueur sélectionné ira ici -->
+            </div>
+            <div class="flex justify-around items-center">
+                <button id="cancel-draft" class="secondary-button">Annuler</button>
+                <button id="examine-player" class="examine-button">Examiner</button>
+                <button id="confirm-draft" class="action-button">Drafter</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- NOUVEAU: Modale pour l'examen de la carte -->
+    <div id="examine-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 cursor-pointer">
+        <div class="modal-backdrop fixed inset-0"></div>
+        <div id="examine-content" class="relative z-10">
+            <!-- L'image en grand format ira ici -->
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
