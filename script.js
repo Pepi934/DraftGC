@@ -32,7 +32,7 @@ const playerData = [
     { name: "Shawn", note: 85, roles: ["mid", "top"] }, 
     { name: "Wshlanimal", note: 85, roles: ["support"] }, 
     { name: "Yassine", note: 85, roles: ["jungle", "top"] },
-    { name: "sampl", note: 84, roles: ["mid"] }, 
+    { name: "Sampl", note: 84, roles: ["mid"] }, 
     { name: "Axmo", note: 85, roles: ["adc"] }, 
     { name: "Dioxy", note: 85, roles: ["support"] },
     { name: "LokiDkey", note: 82, roles: ["mid", "adc"] }, 
