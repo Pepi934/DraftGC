@@ -72,7 +72,7 @@ const playerData = [
     { name: "Rez", note: 79, roles: ["mid"] }, 
     { name: "Derveus", note: 79, roles: ["support"] }, 
     { name: "Takia", note: 79, roles: ["support", "adc"] },
-    { name: "iMuuhb", note: 78, roles: ["support"] }, 
+    { name: "iMuuhb", note: 88, roles: ["support"] }, 
     { name: "YiJoon", note: 78, roles: ["jungle"] }, 
     { name: "M1cka", note: 78, roles: ["adc"] },
     { name: "Sinbad", note: 77, roles: ["jungle", "support"] }, 
