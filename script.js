@@ -16,6 +16,10 @@ const costFilters = document.getElementById('cost-filters');
 const examinePlayerBtn = document.getElementById('examine-player');
 const examineModal = document.getElementById('examine-modal');
 const examineContent = document.getElementById('examine-content');
+const summarySection = document.getElementById('summary-section');
+const showSummaryLink = document.getElementById('show-summary-link');
+const finalTeamsGrid = document.getElementById('final-teams-grid');
+
 
 // --- MODIFIÉ: Structure de données des joueurs ---
 let players = []; // Array d'objets: { name, note, cost, roles, isDrafted }
@@ -23,9 +27,8 @@ let players = []; // Array d'objets: { name, note, cost, roles, isDrafted }
 // Données brutes des joueurs (nom, note et rôles)
 const playerData = [
     { name: "Mehdi", note: 90, roles: ["jungle", "adc"] }, 
-    { name: "Anakine", note: 90, roles: ["mid"] }, 
+    { name: "Anakine", note: 90, roles: ["mid", "support"] }, 
     { name: "Bricorne", note: 90, roles: ["top"] },
-    { name: "Baji", note: 90, roles: ["adc", "jungle",  "support"] },
     { name: "Slaynn", note: 88, roles: ["adc"] }, 
     { name: "Antho", note: 88, roles: ["jungle", "mid"] },
     { name: "Anas", note: 87, roles: ["adc", "jungle"] }, 
@@ -101,8 +104,9 @@ let draftOrder = [];
 let teamTokens = [];
 let currentPick = 0;
 let selectedPlayerElement = null;
-const NUM_TEAMS = 8; // MODIFIÉ
-const PICKS_PER_TEAM = 4; // MODIFIÉ: 4 picks + 1 capitaine
+const NUM_TEAMS = 8;
+const TEAM_SIZE = 5;
+const PICKS_PER_TEAM = TEAM_SIZE - 1;
 const STARTING_TOKENS = 1000;
 let activeRoleFilter = 'all'; 
 let activeCostFilter = 'all'; 
@@ -112,7 +116,6 @@ confirmCaptainsBtn.addEventListener('click', initializeDraft);
 
 function initializeDraft() {
     errorMessage.textContent = '';
-    // On génère les données des joueurs en premier pour pouvoir valider les noms
     generatePlayerData();
     
     const names = captainsInput.value.trim();
@@ -129,7 +132,6 @@ function initializeDraft() {
         return;
     }
 
-    // Validation pour vérifier si tous les capitaines sont des joueurs existants
     const allCaptainsArePlayers = captains.every(captainName => 
         players.some(player => player.name.toLowerCase() === captainName.toLowerCase())
     );
@@ -146,12 +148,9 @@ function initializeDraft() {
 
     generateSnakeDraftOrder();
     createDraftBoard();
-    
     preDraftCaptains();
-    
     applyFilters();
-    setupRoleFilters();
-    setupCostFilters();
+    setupEventListeners();
     updateTurnIndicator();
 }
 
@@ -171,13 +170,10 @@ function generatePlayerData() {
 function preDraftCaptains() {
     captains.forEach((captainName, index) => {
         const player = players.find(p => p.name.toLowerCase() === captainName.toLowerCase());
-
         if (player) {
             player.isDrafted = true;
-            
             const teamColumn = draftBoard.querySelector(`.team-column[data-captain-index='${index}']`);
             const emptySlot = teamColumn.querySelector('.player-slot:empty');
-
             if(emptySlot) {
                 const playerId = players.indexOf(player);
                 const draftedPlayerWrapper = createPlayerElement(player, playerId);
@@ -216,7 +212,7 @@ function createDraftBoard() {
         header.textContent = name;
         column.appendChild(header);
 
-        for (let i = 0; i < PICKS_PER_TEAM + 1; i++) { // +1 pour le capitaine
+        for (let i = 0; i < TEAM_SIZE; i++) {
             const slot = document.createElement('div');
             slot.className = 'player-slot flex items-center justify-center';
             column.appendChild(slot);
@@ -235,7 +231,7 @@ function createPlayerElement(player, index) {
     playerCard.className = 'player-card';
 
     const playerImg = document.createElement('img');
-    playerImg.src = `img/cartes/${player.name}.png`;
+    playerImg.src = `img/cartes/${player.name.toLowerCase()}.png`;
     playerImg.alt = player.name;
     
     playerImg.onerror = function() { 
@@ -283,30 +279,31 @@ function applyFilters() {
     createPlayerPool(filteredPlayers);
 }
 
-function setupRoleFilters() {
+function setupEventListeners() {
     roleFilters.addEventListener('click', (event) => {
         const target = event.target.closest('[data-role]');
         if (!target) return;
-
         roleFilters.querySelectorAll('.active').forEach(el => el.classList.remove('active'));
         target.classList.add('active');
-
         activeRoleFilter = target.dataset.role;
         applyFilters();
     });
-}
 
-function setupCostFilters() {
     costFilters.addEventListener('click', (event) => {
         const target = event.target.closest('[data-cost]');
         if (!target) return;
-
         costFilters.querySelectorAll('.active').forEach(el => el.classList.remove('active'));
         target.classList.add('active');
-
         activeCostFilter = target.dataset.cost;
         applyFilters();
     });
+
+    confirmDraftBtn.addEventListener('click', handleConfirmDraft);
+    cancelDraftBtn.addEventListener('click', handleCancelDraft);
+    examinePlayerBtn.addEventListener('click', handleExaminePlayer);
+    examineModal.addEventListener('click', () => examineModal.classList.remove('is-visible'));
+    confirmationModal.querySelector('.modal-backdrop').addEventListener('click', handleCancelDraft);
+    showSummaryLink.addEventListener('click', displayDraftSummary);
 }
 
 function updateTurnIndicator() {
@@ -314,6 +311,7 @@ function updateTurnIndicator() {
         turnIndicator.innerHTML = `🎉 <span class="title-text">La Draft est terminée !</span> 🎉`;
         turnIndicator.style.borderColor = 'var(--secondary-glow)';
         turnIndicator.style.boxShadow = '0 0 20px var(--secondary-glow)';
+        summarySection.classList.remove('hidden');
         return;
     }
 
@@ -367,21 +365,11 @@ function handleConfirmDraft() {
     const emptySlot = teamColumn.querySelector('.player-slot:empty');
 
     if (emptySlot) {
-        const originalWrapper = selectedPlayerElement;
-        originalWrapper.removeEventListener('click', handlePlayerSelection);
-        originalWrapper.classList.add('is-drafted');
-        originalWrapper.style.display = 'none';
-        
-        const draftedPlayerWrapper = originalWrapper.cloneNode(true);
-        draftedPlayerWrapper.classList.remove('is-drafted');
-        draftedPlayerWrapper.style.display = 'flex';
-        
-        const nameInModal = draftedPlayerWrapper.querySelector('.player-name');
-        nameInModal.innerHTML = `${player.name} <span class="player-cost">(${player.cost} 🪙)</span>`;
-        
+        const draftedPlayerWrapper = createPlayerElement(player, playerId);
         emptySlot.appendChild(draftedPlayerWrapper);
 
         currentPick++;
+        applyFilters();
         updateTurnIndicator();
     }
 
@@ -398,20 +386,58 @@ function closeModal() {
     selectedPlayerPreview.innerHTML = '';
 }
 
-// Gérer l'examen de la carte
 function handleExaminePlayer() {
     if (!selectedPlayerElement) return;
-
     const imgSrc = selectedPlayerElement.querySelector('img').src;
     examineContent.innerHTML = `<img src="${imgSrc}" alt="Carte du joueur en grand">`;
     examineModal.classList.add('is-visible');
 }
 
-// Attacher les événements
-confirmDraftBtn.addEventListener('click', handleConfirmDraft);
-cancelDraftBtn.addEventListener('click', handleCancelDraft);
-examinePlayerBtn.addEventListener('click', handleExaminePlayer);
-examineModal.addEventListener('click', () => {
-    examineModal.classList.remove('is-visible');
-});
-confirmationModal.querySelector('.modal-backdrop').addEventListener('click', handleCancelDraft);
+function displayDraftSummary(event) {
+    event.preventDefault();
+    finalTeamsGrid.innerHTML = '';
+    
+    draftBoard.classList.add('hidden');
+    playerPool.classList.add('hidden');
+    document.querySelector('.filters-container').classList.add('hidden');
+    document.querySelectorAll('.section-title').forEach(el => el.classList.add('hidden'));
+    showSummaryLink.classList.add('hidden');
+
+    captains.forEach((captainName, index) => {
+        const teamCard = document.createElement('div');
+        teamCard.className = 'summary-team-card';
+
+        const teamTitle = document.createElement('h3');
+        teamTitle.textContent = `Équipe ${captainName}`;
+        teamCard.appendChild(teamTitle);
+
+        const playerList = document.createElement('div');
+        playerList.className = 'summary-player-list';
+        
+        const teamPlayersNodes = document.querySelectorAll(`.team-column[data-captain-index='${index}'] .player-wrapper`);
+        
+        teamPlayersNodes.forEach(playerNode => {
+            const playerName = playerNode.dataset.playerName;
+            const playerImgSrc = playerNode.querySelector('img').src;
+
+            const playerItem = document.createElement('div');
+            playerItem.className = 'summary-player';
+            
+            const nameSpan = document.createElement('span');
+            nameSpan.textContent = playerName;
+
+            const playerImg = document.createElement('img');
+            playerImg.src = playerImgSrc;
+            playerImg.alt = playerName;
+
+            playerItem.appendChild(nameSpan);
+            playerItem.appendChild(playerImg);
+            playerList.appendChild(playerItem);
+        });
+
+        teamCard.appendChild(playerList);
+        finalTeamsGrid.appendChild(teamCard);
+    });
+
+    finalTeamsGrid.classList.remove('hidden');
+}
